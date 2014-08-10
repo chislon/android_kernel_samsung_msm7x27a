@@ -31,8 +31,8 @@
 #if (CONFIG_MACH_JENA_HWREV == 0x0)
 #include <JENA_HV_02_CORE26_PR_02_PU02.c>
 #else
-#include <JENA_HW_04_CORE28_PR_04_PU06.c>
-#include <JENA_HV_05_CORE28_PR_06_PU09.c>
+#include "JENA_HW_04_CORE28_PR_04_PU06.c"
+#include "JENA_HV_05_CORE28_PR_06_PU09.c"
 #endif
 
 static UINT16 MELFAS_binary_nLength;
