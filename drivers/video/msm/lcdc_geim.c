@@ -921,37 +921,10 @@ static int lcdc_geim_panel_off(struct platform_device *pdev)
 static void lcdc_geim_set_backlight(struct msm_fb_data_type *mfd)
 {
 	int bl_value = mfd->bl_level;
-	static int lockup_count = 0;
 
-	up(&backlight_sem);
-	printk("[BACLKIGHT] : %d\n",bl_value);
-	if(!bl_value) {
-		/*  Turn off Backlight, don't check disp_initialized value */
-		lcd_prf = 1;
-
-	} else {
-		if(lcd_prf)
-			return;
-
-		while(!disp_state.disp_initialized) {
-			msleep(100);
-			lockup_count++;
-
-			if(lockup_count > 50) {
-				printk("Prevent infinite loop(wait for 5s)\n");
-				printk("LCD can't initialize with in %d ms\n"
-					, lockup_count*100);
-				lockup_count = 0;
-
-				down(&backlight_sem);
-				return;
-			}
-		}
-	}
+	printk("[BACKLIGHT] : %d\n",bl_value);
 
 	backlight_ic_set_brightness(bl_value);
-
-	down(&backlight_sem);
 }
 
 #ifdef ESD_RECOVERY

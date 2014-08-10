@@ -122,7 +122,7 @@ Version 3.0.16 : [201101024]
 #endif
 
 #if	BT4x3_Above_Series
-#include "zinitix_touch_bt4x3_firmware_geim_R022.h"
+#include "zinitix_touch_bt4x3_firmware_geim_R027.h"
 #include "zinitix_touch_bt4x3_reg_data.h"
 #endif
 
@@ -1332,7 +1332,7 @@ fail_upgrade:
 
 #if	(TOUCH_USING_ISP_METHOD == 1)
 	printk(KERN_INFO "upgrade fail : so retry... (%d)\n", ++retry_cnt);
-	if (retry_cnt >= ZINITIX_INIT_RETRY_CNT)
+	if (retry_cnt <= ZINITIX_INIT_RETRY_CNT)
 		goto retry_isp_firmware_upgrade;
 #endif
 	if (verify_data != NULL)
@@ -1358,6 +1358,8 @@ static bool ts_init_touch(struct zinitix_touch_dev *touch_dev)
 	s16 stmp;
 #endif
 	int retry_cnt = 0;
+	int button_count;
+	int button_sensitivity;
 
 	if (touch_dev == NULL) {
 		printk(KERN_ERR "error touch_dev == null?\r\n");
@@ -1671,6 +1673,11 @@ force_upgrade:
 		(u16)(SetMaxY)) != I2C_SUCCESS)
 		goto fail_init;
 
+	if (ts_write_reg(touch_dev->client,
+		ZINITIX_SOFT_CALIBRATION_COUNT,
+		0x02) != I2C_SUCCESS)
+		goto fail_init;
+
 	if (ts_read_data(touch_dev->client,
 		ZINITIX_X_RESOLUTION,
 		(u8 *)&touch_dev->cap_info.x_resolution, 2) < 0)
@@ -1688,6 +1695,16 @@ force_upgrade:
 	touch_dev->cap_info.MinY = (u32)0;
 	touch_dev->cap_info.MaxX = (u32)touch_dev->cap_info.x_resolution;
 	touch_dev->cap_info.MaxY = (u32)touch_dev->cap_info.y_resolution;
+
+	button_count = 4;
+	button_sensitivity = 680;
+	if (ts_write_reg(touch_dev->client, 0x00b1,
+		(u16)(button_count))!=I2C_SUCCESS)
+		goto fail_init;
+
+	if (ts_write_reg(touch_dev->client, 0x00b2,
+		(u16)(button_sensitivity))!=I2C_SUCCESS)
+		goto fail_init;
 
 #if USING_CHIP_SETTING
 		if (ts_read_data(touch_dev->client,
@@ -1914,6 +1931,17 @@ static void	zinitix_clear_report_data(struct zinitix_touch_dev *touch_dev)
 			reported = 1;
 		}
 		touch_dev->reported_touch_info.coord[i].sub_status = 0;
+	}
+	for (i = 0; i < touch_dev->cap_info.button_num; i++) {
+		touch_dev->button[i] = ICON_BUTTON_UP;
+		input_report_key(touch_dev->input_dev,
+				BUTTON_MAPPING_KEY[i], 0);
+		reported = true;
+#ifdef DEBUG_TOUCHSCREEN_ZINITIX
+		zinitix_debug_msg("button clear = %d \r\n", i);
+#else
+		printk(KERN_INFO "[TSP] button clear \r\n");
+#endif
 	}
 	if (reported)
 		input_sync(touch_dev->input_dev);

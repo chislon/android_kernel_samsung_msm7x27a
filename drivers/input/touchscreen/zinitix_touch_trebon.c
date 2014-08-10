@@ -122,7 +122,7 @@ Version 3.0.16 : [201101024]
 #endif
 
 #if	BT4x3_Above_Series
-#include "zinitix_touch_bt4x3_firmware_R021.h"
+#include "zinitix_touch_bt4x3_firmware_R023.h"
 #include "zinitix_touch_bt4x3_reg_data.h"
 #endif
 

@@ -113,7 +113,7 @@ static int FW_VERSION;
 #undef TSP_PATTERN_TRACTKING
 
 #if SET_DOWNLOAD_BY_GPIO
-#include "mms100_download.h"
+#include <mms100_download.h>
 #endif // SET_DOWNLOAD_BY_GPIO
 
 #define TS_READ_EXCITING_CH_ADDR	0x2E
@@ -276,7 +276,6 @@ static void TSP_reboot(void);
 static ssize_t	check_init_lowleveldata();
 
 static struct muti_touch_info g_Mtouch_info[MELFAS_MAX_TOUCH];
-int g_prevTouchStrength[MELFAS_MAX_TOUCH] = {-1,};
 #define VREG_ENABLE		1
 #define VREG_DISABLE	0
 
@@ -556,10 +555,8 @@ static void melfas_ts_get_data(struct work_struct *work)
 
 	for(i=0; i<MELFAS_MAX_TOUCH; i++)
 	{
-		if(g_Mtouch_info[i].strength== -1) {
-			g_prevTouchStrength[i] = -1;
+		if(g_Mtouch_info[i].strength== -1)
 			continue;
-		}
 
 #ifdef TSP_PATTERN_TRACTKING
 		tsp_pattern_tracking(ts, i, g_Mtouch_info[i].posX, g_Mtouch_info[i].posY);
@@ -570,23 +567,16 @@ static void melfas_ts_get_data(struct work_struct *work)
 		input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR, g_Mtouch_info[i].strength );
 		input_report_abs(ts->input_dev, ABS_MT_WIDTH_MAJOR, g_Mtouch_info[i].width);
 		input_mt_sync(ts->input_dev);
-#if DEBUG_PRINT
+//#if DEBUG_PRINT
 		printk(KERN_ERR "[TSP] ID: %d, State : %d, x: %d, y: %d, z: %d w: %d\n",
 			i, (g_Mtouch_info[i].strength>0), g_Mtouch_info[i].posX, g_Mtouch_info[i].posY, g_Mtouch_info[i].strength, g_Mtouch_info[i].width);
-#endif
+//#endif
 
-		if(g_Mtouch_info[i].strength == 0) {
+		if(g_Mtouch_info[i].strength == 0)
 			g_Mtouch_info[i].strength = -1;
-			printk(KERN_ERR "[TSP] %d - R\n",i);
-		}
-		
-		if(g_Mtouch_info[i].strength > 0 && g_prevTouchStrength[i] < 0)
-			printk(KERN_ERR "[TSP] %d - P\n",i);
 
 		if(g_Mtouch_info[i].strength > 0)
 			_touch_is_pressed = 1;
-				
-		g_prevTouchStrength[i] = g_Mtouch_info[i].strength;
 
 	}
 	input_sync(ts->input_dev);
@@ -2409,7 +2399,7 @@ static int __devinit melfas_ts_init(void)
 	else if (board_hw_revision == 1)
 		FW_VERSION = 0x08;
 	else
-		FW_VERSION = 0x27;
+		FW_VERSION = 0x21;
 	return i2c_add_driver(&melfas_ts_driver);
 }
 
